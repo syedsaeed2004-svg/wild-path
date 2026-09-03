@@ -3,7 +3,7 @@
  * Ensures 100% Offline, Zero-Network & Zero-GPS functionality in jungles.
  */
 
-const CACHE_NAME = 'wildpath-v2';
+const CACHE_NAME = 'wildpath-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -11,7 +11,9 @@ const ASSETS_TO_CACHE = [
     './dashboard.html',
     './styles.css',
     './app.js',
-    './manifest.json'
+    './manifest.json',
+    './icon-192.png',
+    './icon-512.png'
 ];
 
 // Install Event - Cache Static Assets
