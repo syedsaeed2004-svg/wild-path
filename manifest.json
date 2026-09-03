@@ -1,6 +1,8 @@
 {
+  "id": "wildpath-explorer-app",
   "short_name": "WildPath",
   "name": "WildPath Explorer - Off-Grid Trail Mapper",
+  "description": "Zero-GPS, zero-network dead-reckoning compass & step path mapper for jungle explorers, survivalists, and hikers.",
   "icons": [
     {
       "src": "icon-192.png",
@@ -16,9 +18,48 @@
     }
   ],
   "start_url": "./index.html",
-  "background_color": "#0a0f0d",
-  "theme_color": "#10b981",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "description": "Zero-GPS, zero-network dead-reckoning compass & step path mapper for jungle explorers, survivalists, and hikers."
+  "background_color": "#0a0f0d",
+  "theme_color": "#10b981",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "navigation",
+    "travel",
+    "utilities"
+  ],
+  "shortcuts": [
+    {
+      "name": "Expedition Dashboard",
+      "short_name": "Dashboard",
+      "description": "View stored expedition tracks and SOS logs",
+      "url": "./dashboard.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Explorer Login",
+      "short_name": "Login",
+      "description": "Sign in to your explorer account",
+      "url": "./login.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "WildPath Explorer Tactical Navigator Map"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "WildPath Explorer Mobile HUD"
+    }
+  ]
 }
