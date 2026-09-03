@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WildPath Explorer - Login & Authentication</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--bg-panel-solid);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 420px;
+            padding: 32px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .auth-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .auth-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 24px;
+            gap: 4px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            background: var(--accent-emerald);
+            color: #fff;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .alert-box {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            display: none;
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--accent-danger);
+            color: #f87171;
+        }
+        .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--accent-mint);
+            color: var(--accent-mint);
+        }
+
+        .auth-footer-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.78rem;
+        }
+        .auth-footer-link a {
+            color: var(--accent-mint);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .auth-footer-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 19 21 12 17 5 21 12 2"/>
+                </svg>
+                <span class="auth-title">WILDPATH</span>
+            </div>
+            <p class="auth-subtitle">Expedition & Navigator Account Access</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-login-btn">Sign In</button>
+            <button class="auth-tab" id="tab-register-btn">Create Account</button>
+        </div>
+
+        <div class="alert-box alert-error" id="alert-error"></div>
+        <div class="alert-box alert-success" id="alert-success"></div>
+
+        <!-- Login Form -->
+        <form class="auth-form" id="login-form">
+            <div class="form-group">
+                <label for="login-email">Email Address:</label>
+                <input type="email" id="login-email" required placeholder="explorer@wildpath.org">
+            </div>
+
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" required placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block glow-button">
+                <span>Sign In to Explorer Portal</span>
+            </button>
+        </form>
+
+        <!-- Register Form -->
+        <form class="auth-form" id="register-form" style="display: none;">
+            <div class="form-group">
+                <label for="reg-username">Explorer Call-Sign / Username:</label>
+                <input type="text" id="reg-username" required placeholder="JungleScout99">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-email">Email Address:</label>
+                <input type="email" id="reg-email" required placeholder="explorer@wildpath.org">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-password">Password:</label>
+                <input type="password" id="reg-password" required placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block glow-button">
+                <span>Create Explorer Account</span>
+            </button>
+        </form>
+
+        <div class="auth-footer-link">
+            <a href="index.html">← Back to Offline Navigator Map</a>
+        </div>
+    </div>
+
+    <script>
+        const tabLoginBtn = document.getElementById('tab-login-btn');
+        const tabRegisterBtn = document.getElementById('tab-register-btn');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const alertError = document.getElementById('alert-error');
+        const alertSuccess = document.getElementById('alert-success');
+
+        function showError(msg) {
+            alertError.textContent = msg;
+            alertError.style.display = 'block';
+            alertSuccess.style.display = 'none';
+        }
+
+        function showSuccess(msg) {
+            alertSuccess.textContent = msg;
+            alertSuccess.style.display = 'block';
+            alertError.style.display = 'none';
+        }
+
+        tabLoginBtn.addEventListener('click', () => {
+            tabLoginBtn.classList.add('active');
+            tabRegisterBtn.classList.remove('active');
+            loginForm.style.display = 'flex';
+            registerForm.style.display = 'none';
+            alertError.style.display = 'none';
+            alertSuccess.style.display = 'none';
+        });
+
+        tabRegisterBtn.addEventListener('click', () => {
+            tabRegisterBtn.classList.add('active');
+            tabLoginBtn.classList.remove('active');
+            registerForm.style.display = 'flex';
+            loginForm.style.display = 'none';
+            alertError.style.display = 'none';
+            alertSuccess.style.display = 'none';
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('wildpath_token', data.token);
+                    localStorage.setItem('wildpath_user', JSON.stringify(data.user));
+                    showSuccess('Authentication successful! Redirecting to Dashboard...');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1000);
+                } else {
+                    showError(data.error || 'Login failed.');
+                }
+            } catch (err) {
+                showError('Network error connecting to backend.');
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('wildpath_token', data.token);
+                    localStorage.setItem('wildpath_user', JSON.stringify(data.user));
+                    showSuccess('Account created successfully! Redirecting...');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1000);
+                } else {
+                    showError(data.error || 'Registration failed.');
+                }
+            } catch (err) {
+                showError('Network error connecting to backend.');
+            }
+        });
+    </script>
+</body>
+</html>

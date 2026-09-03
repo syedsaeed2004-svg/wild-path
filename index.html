@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WildPath Explorer - Off-Grid & Zero-GPS Dead Reckoning Trail Mapper</title>
+    <meta name="description" content="100% Offline, Zero-GPS & Zero-Network dead-reckoning compass, step & distance path mapper for jungle explorers, hikers, and survivalists.">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+    <!-- SOS Strobe Overlay -->
+    <div id="sos-strobe-overlay" class="sos-strobe-overlay">
+        <div class="sos-modal-content">
+            <h1 class="sos-title">🚨 SOS DISTRESS BEACON ACTIVE 🚨</h1>
+            <p class="sos-coords">RELATIVE COORDS: <span id="sos-coord-text">X: 0m, Y: 0m</span></p>
+            <p class="sos-bearing">BEARING TO BASE CAMP: <span id="sos-bearing-text">180°</span></p>
+            <div class="sos-morse-signal">MORSE SIGNAL: ... --- ... (... --- ...)</div>
+            <button id="btn-stop-sos" class="btn btn-primary btn-block">STOP EMERGENCY BEACON</button>
+        </div>
+    </div>
+
+    <!-- Top Navigation / Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
+                    <polygon points="12 2 19 21 12 17 5 21 12 2"/>
+                </svg>
+                <div class="logo-text">
+                    <span class="brand-title">WILDPATH</span>
+                    <span class="brand-subtitle">EXPLORER & NAVIGATOR</span>
+                </div>
+            </div>
+            <div class="signal-status" id="server-status-badge">
+                <span class="status-dot online" id="status-dot-icon"></span>
+                <span class="status-text" id="server-status-text">OFF-GRID DEAD RECKONING (ZERO GPS NEEDED)</span>
+            </div>
+        </div>
+
+        <div class="header-center stats-bar">
+            <div class="stat-badge">
+                <span class="stat-label">TOTAL DISTANCE</span>
+                <span class="stat-value" id="stat-distance">0.0 <small>m</small></span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-badge">
+                <span class="stat-label">TOTAL STEPS</span>
+                <span class="stat-value" id="stat-steps">0</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-badge">
+                <span class="stat-label">DISPLACEMENT</span>
+                <span class="stat-value" id="stat-displacement">0.0 <small>m</small></span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-badge">
+                <span class="stat-label">REQUIRED WATER</span>
+                <span class="stat-value" id="stat-water">0.25 <small>L</small></span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-badge">
+                <span class="stat-label">CURRENT HEADING</span>
+                <span class="stat-value" id="stat-heading">000° <small>N</small></span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <button id="btn-sos-trigger" class="btn btn-sos btn-sm" title="Trigger Emergency Beacon">
+                <span>🚨 SOS</span>
+            </button>
+            <button id="btn-sound-toggle" class="icon-button" title="Toggle Sound Feedback">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+            </button>
+            <button id="btn-replay-track" class="btn btn-secondary btn-sm" title="Replay Path Timeline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>Replay Hike</span>
+            </button>
+            <a href="dashboard.html" class="btn btn-secondary btn-sm">
+                <span>📊 Dashboard</span>
+            </a>
+            <a href="login.html" class="btn btn-secondary btn-sm" id="nav-login-link">
+                <span>👤 Login</span>
+            </a>
+            <button id="btn-export-menu" class="btn btn-primary btn-sm">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Export Map</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Sidebar Navigation Controls -->
+        <aside class="sidebar left-sidebar">
+            <!-- Direction Selector Pad -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3>DIRECTION & STEPS</h3>
+                    <span class="badge">ZERO-GPS DR</span>
+                </div>
+                
+                <!-- Direction Selector Grid -->
+                <div class="direction-section">
+                    <label class="control-label">SELECT DIRECTION (HEADING)</label>
+                    <div class="compass-rose-grid">
+                        <button class="dir-btn" data-deg="315" data-cardinal="NW">NW</button>
+                        <button class="dir-btn active" data-deg="0" data-cardinal="N">N</button>
+                        <button class="dir-btn" data-deg="45" data-cardinal="NE">NE</button>
+                        <button class="dir-btn" data-deg="270" data-cardinal="W">W</button>
+                        <div class="compass-center-display">
+                            <span id="center-heading-val">0°</span>
+                            <span id="center-cardinal-val">N</span>
+                        </div>
+                        <button class="dir-btn" data-deg="90" data-cardinal="E">E</button>
+                        <button class="dir-btn" data-deg="225" data-cardinal="SW">SW</button>
+                        <button class="dir-btn" data-deg="180" data-cardinal="S">S</button>
+                        <button class="dir-btn" data-deg="135" data-cardinal="SE">SE</button>
+                    </div>
+
+                    <!-- Fine Angle Wheel Slider -->
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>Exact Heading (°):</span>
+                            <input type="number" id="heading-input" min="0" max="359" value="0">
+                        </div>
+                        <input type="range" id="heading-range" min="0" max="359" value="0" class="custom-range">
+                    </div>
+                </div>
+
+                <!-- Distance / Step Input -->
+                <div class="step-section">
+                    <div class="input-mode-toggle">
+                        <button class="mode-tab active" id="tab-meters">Meters (m)</button>
+                        <button class="mode-tab" id="tab-steps">Steps</button>
+                    </div>
+
+                    <div class="distance-input-row">
+                        <div class="number-input-wrap">
+                            <input type="number" id="distance-val" value="10" min="1" max="5000">
+                            <span class="unit-tag" id="unit-tag">meters</span>
+                        </div>
+                    </div>
+
+                    <div class="quick-step-buttons">
+                        <button class="chip-btn" data-add="5">+5m</button>
+                        <button class="chip-btn" data-add="10">+10m</button>
+                        <button class="chip-btn" data-add="25">+25m</button>
+                        <button class="chip-btn" data-add="50">+50m</button>
+                        <button class="chip-btn" data-add="100">+100m</button>
+                    </div>
+
+                    <!-- Stride Length Setting -->
+                    <div class="stride-setting">
+                        <label for="stride-length">Stride Length (m/step):</label>
+                        <input type="number" id="stride-length" value="0.75" step="0.05" min="0.3" max="2.0">
+                    </div>
+
+                    <!-- Action Button to Record Movement -->
+                    <button id="btn-add-step" class="btn btn-success btn-block glow-button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>RECORD MOVEMENT</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hardware & Offline Survival Tools -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3>OFF-GRID SURVIVAL TOOLS</h3>
+                </div>
+                <div class="sensor-controls">
+                    <button id="btn-enable-sensors" class="btn btn-outline btn-block btn-sm" style="margin-bottom: 6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                        </svg>
+                        <span>Enable Mobile Compass Hardware</span>
+                    </button>
+                    <button id="btn-open-celestial-tool" class="btn btn-secondary btn-block btn-sm">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                        </svg>
+                        <span>Offline Sun & Star Compass</span>
+                    </button>
+                    <div class="sensor-info" id="sensor-info-text">
+                        100% Offline Compatible. Uses dead reckoning trigonometric vectors (Zero GPS needed).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backtrack & Navigation Assistance -->
+            <div class="panel-card backtrack-card">
+                <div class="panel-header">
+                    <h3>BACKTRACK & BASE CAMP</h3>
+                </div>
+                <div class="backtrack-info">
+                    <div class="arrow-container">
+                        <div id="backtrack-arrow" class="nav-arrow" style="transform: rotate(180deg);">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="backtrack-text">
+                        <div class="heading-to-base">BEARING TO BASE: <span id="base-bearing">180° (S)</span></div>
+                        <div class="distance-to-base">DISTANCE: <span id="base-distance">0.0 m</span></div>
+                    </div>
+                </div>
+                <button id="btn-backtrack-mode" class="btn btn-warning btn-block btn-sm">
+                    <span>Guide Me Back to Start</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Map Viewport & Overlay Canvas -->
+        <main class="map-container">
+            <!-- Hazard Proximity Banner -->
+            <div id="hazard-warning-banner" class="hazard-warning-banner">
+                <span class="hazard-icon">⚠️</span>
+                <span class="hazard-text">DANGER PROXIMITY ALERT: Within 15m of hazard marker!</span>
+            </div>
+
+            <!-- Canvas Map Engine -->
+            <canvas id="map-canvas"></canvas>
+
+            <!-- Map HUD Overlays -->
+            <div class="map-hud top-left-hud">
+                <div class="hud-box">
+                    <div class="coord-row">
+                        <span class="coord-label">REL X:</span>
+                        <span class="coord-val" id="hud-pos-x">0.0 m</span>
+                    </div>
+                    <div class="coord-row">
+                        <span class="coord-label">REL Y:</span>
+                        <span class="coord-val" id="hud-pos-y">0.0 m</span>
+                    </div>
+                    <div class="coord-row">
+                        <span class="coord-label">MODE:</span>
+                        <span class="coord-val" style="color:#34d399;">ZERO-GPS DR</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-hud top-right-hud">
+                <div class="map-style-toggle">
+                    <button class="map-style-btn active" data-theme="tactical">Tactical Grid</button>
+                    <button class="map-style-btn" data-theme="topographic">Jungle Topo</button>
+                    <button class="map-style-btn" data-theme="darkness">Night Recon</button>
+                </div>
+            </div>
+
+            <!-- Floating Map Controls -->
+            <div class="map-controls-floating">
+                <button id="btn-zoom-in" class="fab-btn" title="Zoom In">+</button>
+                <button id="btn-zoom-out" class="fab-btn" title="Zoom Out">-</button>
+                <button id="btn-recenter" class="fab-btn" title="Recenter Map">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="8"></circle>
+                        <line x1="12" y1="2" x2="12" y2="4"></line>
+                        <line x1="12" y1="20" x2="12" y2="22"></line>
+                        <line x1="2" y1="12" x2="4" y2="12"></line>
+                        <line x1="20" y1="12" x2="22" y2="12"></line>
+                    </svg>
+                </button>
+                <button id="btn-add-waypoint" class="fab-btn fab-primary" title="Add Waypoint / Marker">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Scale & Legend Bar -->
+            <div class="map-hud bottom-left-hud">
+                <div class="scale-bar-container">
+                    <div class="scale-bar" id="scale-bar-line" style="width: 80px;"></div>
+                    <span class="scale-text" id="scale-bar-text">20 m</span>
+                </div>
+            </div>
+
+            <div class="map-hud bottom-right-hud">
+                <div class="compass-widget" title="North Indicator">
+                    <div id="compass-needle" class="compass-needle"></div>
+                    <span class="compass-n">N</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar - Route Log, Waypoints & Server Trails -->
+        <aside class="sidebar right-sidebar">
+            <div class="tab-header">
+                <button class="sidebar-tab active" id="tab-route-log">Route History</button>
+                <button class="sidebar-tab" id="tab-waypoints">Waypoints</button>
+                <button class="sidebar-tab" id="tab-trails">Saved Expeditions</button>
+            </div>
+
+            <!-- Panel 1: Step-by-Step Log -->
+            <div id="panel-route-log" class="tab-panel active">
+                <div class="log-actions">
+                    <span class="log-title">Path Movements (<span id="log-count">0</span>)</span>
+                    <button id="btn-undo-step" class="btn-text" title="Undo last step">Undo</button>
+                    <button id="btn-clear-path" class="btn-text danger-text" title="Clear entire path">Clear</button>
+                </div>
+                <div class="route-list" id="route-list-container">
+                    <div class="empty-state">
+                        <p>No movements recorded yet.</p>
+                        <small>Use direction pad or arrow keys to start mapping your trail.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Waypoints & Markers -->
+            <div id="panel-waypoints" class="tab-panel">
+                <div class="log-actions">
+                    <span class="log-title">Exploration Markers</span>
+                    <button id="btn-quick-add-camp" class="btn btn-xs btn-outline">+ Camp</button>
+                </div>
+                <div class="waypoint-list" id="waypoint-list-container">
+                    <div class="empty-state">
+                        <p>No waypoints dropped yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Offline & Server Saved Trails -->
+            <div id="panel-trails" class="tab-panel">
+                <div class="save-trail-box">
+                    <input type="text" id="trail-name-input" placeholder="Expedition Name (e.g. Amazon Recon)...">
+                    <button id="btn-save-current-trail" class="btn btn-primary btn-block btn-sm">Save Expedition Track</button>
+                </div>
+                <div class="saved-trails-list" id="saved-trails-container">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Offline Sun & Star Compass Modal -->
+    <div class="modal-overlay" id="celestial-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>☀️ Offline Sun & Star Direction Helper</h3>
+                <button class="modal-close" id="celestial-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Use these off-grid techniques to find True North without any magnetic compass or GPS:</p>
+
+                <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <strong style="color: var(--accent-mint); font-size: 0.85rem;">1. Shadow-Stick Method (Daytime)</strong>
+                    <ol style="font-size: 0.78rem; color: var(--text-main); margin-left: 18px; margin-top: 6px; line-height: 1.5;">
+                        <li>Plant a 1-meter stick vertically in level ground.</li>
+                        <li>Mark the tip of the first shadow with a pebble (Point A = West).</li>
+                        <li>Wait 15-20 minutes until the shadow moves 5-10 cm.</li>
+                        <li>Mark the new shadow tip (Point B = East).</li>
+                        <li>Draw a line from A to B: A line pointing from A to B goes <strong>West to East</strong>. Perpendicular to it points <strong>North</strong>!</li>
+                    </ol>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <strong style="color: var(--accent-orange); font-size: 0.85rem;">2. Polaris Star Method (Night - North)</strong>
+                    <p style="font-size: 0.78rem; color: var(--text-main); margin-top: 4px; line-height: 1.4;">
+                        Locate the <strong>Big Dipper</strong> constellation. Draw an imaginary line straight through the outer two stars of its cup and extend it 5 times its distance. That leads directly to <strong>Polaris (North Star)</strong>!
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary btn-sm" id="btn-celestial-done">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waypoint Modal Dialog -->
+    <div class="modal-overlay" id="waypoint-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Waypoint Marker</h3>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Marker Label / Title:</label>
+                    <input type="text" id="wp-title" placeholder="e.g. Water Stream, Cave Entrance, Danger Zone">
+                </div>
+                <div class="form-group">
+                    <label>Category Icon:</label>
+                    <div class="icon-selector">
+                        <button class="icon-opt active" data-type="camp" title="Camp / Shelter">⛺ Camp</button>
+                        <button class="icon-opt" data-type="water" title="Water Source">💧 Water</button>
+                        <button class="icon-opt" data-type="danger" title="Hazard / Trap">⚠️ Danger</button>
+                        <button class="icon-opt" data-type="landmark" title="Landmark">⛰️ Landmark</button>
+                        <button class="icon-opt" data-type="resource" title="Food / Supply">🍎 Supply</button>
+                        <button class="icon-opt" data-type="photo" title="PO / Photo Spot">📸 Viewpoint</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes / Description:</label>
+                    <textarea id="wp-notes" rows="3" placeholder="Add survival notes, elevation hints, landmark details..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-modal-cancel">Cancel</button>
+                <button class="btn btn-primary" id="btn-modal-save">Drop Waypoint</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal Dialog -->
+    <div class="modal-overlay" id="export-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Export Expedition Map & Data</h3>
+                <button class="modal-close" id="export-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Choose export format to download your trail data:</p>
+                <div class="export-grid">
+                    <button class="export-card" id="btn-export-gpx">
+                        <div class="export-icon">🗺️</div>
+                        <div class="export-info">
+                            <strong>GPX Track File</strong>
+                            <small>For Garmin, OsmAnd, Google Earth, & GPS devices</small>
+                        </div>
+                    </button>
+                    <button class="export-card" id="btn-export-kml">
+                        <div class="export-icon">🌐</div>
+                        <div class="export-info">
+                            <strong>KML 3D Map File</strong>
+                            <small>For Google Earth 3D map visualizers</small>
+                        </div>
+                    </button>
+                    <button class="export-card" id="btn-export-json">
+                        <div class="export-icon">💾</div>
+                        <div class="export-info">
+                            <strong>WildPath JSON Backup</strong>
+                            <small>Full route metadata, step history & waypoints</small>
+                        </div>
+                    </button>
+                    <button class="export-card" id="btn-export-png">
+                        <div class="export-icon">🖼️</div>
+                        <div class="export-info">
+                            <strong>High-Res PNG Map Image</strong>
+                            <small>Export canvas map snapshot with scale bar</small>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Service Worker for 100% Offline Support -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('ServiceWorker registered successfully for offline support.'))
+                    .catch(err => console.log('ServiceWorker registration failed:', err));
+            });
+        }
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>

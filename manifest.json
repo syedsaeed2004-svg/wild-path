@@ -1,0 +1,17 @@
+{
+  "short_name": "WildPath",
+  "name": "WildPath Explorer - Off-Grid Trail Mapper",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2'><polygon points='12 2 19 21 12 17 5 21 12 2'/></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0a0f0d",
+  "theme_color": "#10b981",
+  "display": "standalone",
+  "orientation": "any",
+  "description": "Zero-GPS, zero-network dead-reckoning compass & step path mapper for jungle explorers, survivalists, and hikers."
+}

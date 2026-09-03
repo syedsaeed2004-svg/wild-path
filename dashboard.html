@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WildPath Explorer - Expedition Dashboard</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .dash-welcome-card {
+            background: linear-gradient(135deg, rgba(18, 26, 22, 0.95) 0%, rgba(26, 38, 32, 0.95) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .dash-welcome-title h1 {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .dash-welcome-title p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .metric-icon {
+            font-size: 1.5rem;
+        }
+
+        .metric-value {
+            font-family: var(--font-mono);
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent-mint);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .section-header h2 {
+            font-size: 1.1rem;
+            color: var(--accent-mint);
+            font-family: var(--font-mono);
+        }
+
+        .trails-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .dash-trail-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+        .dash-trail-card:hover {
+            border-color: var(--accent-mint);
+            transform: translateY(-2px);
+        }
+
+        .trail-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .trail-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .trail-card-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .trail-stats-row {
+            display: flex;
+            gap: 16px;
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+        .trail-stats-row span strong {
+            color: var(--accent-mint);
+        }
+
+        .trail-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .dash-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            text-align: left;
+        }
+        .dash-table th {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--accent-mint);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+        }
+        .dash-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
+                    <polygon points="12 2 19 21 12 17 5 21 12 2"/>
+                </svg>
+                <div class="logo-text">
+                    <span class="brand-title">WILDPATH</span>
+                    <span class="brand-subtitle">EXPLORER DASHBOARD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <span id="user-profile-badge" class="badge" style="padding: 6px 12px; font-size: 0.78rem;">Explorer: Guest</span>
+            <a href="index.html" class="btn btn-primary btn-sm">
+                <span>🌐 Launch Map Navigator</span>
+            </a>
+            <button id="btn-logout" class="btn btn-secondary btn-sm">Sign Out</button>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Welcome Banner -->
+        <div class="dash-welcome-card">
+            <div class="dash-welcome-title">
+                <h1 id="welcome-heading">Welcome, Explorer!</h1>
+                <p>Overview of recorded expeditions, MongoDB trail tracks, & emergency SOS logs.</p>
+            </div>
+            <div>
+                <a href="index.html" class="btn btn-primary glow-button">
+                    <span>+ Record New Trail</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Metrics Overview Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">🗺️</div>
+                <div class="metric-value" id="total-trails-val">0</div>
+                <div class="metric-label">TOTAL EXPEDITIONS LOGGED</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🥾</div>
+                <div class="metric-value" id="total-dist-val">0.0 km</div>
+                <div class="metric-label">TOTAL DISTANCE LOGGED</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🚶</div>
+                <div class="metric-value" id="total-steps-val">0</div>
+                <div class="metric-label">TOTAL STEPS TAKEN</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🚨</div>
+                <div class="metric-value" id="total-sos-val" style="color:#ef4444;">0</div>
+                <div class="metric-label">EMERGENCY SOS LOGS</div>
+            </div>
+        </div>
+
+        <!-- Expeditions Section -->
+        <div>
+            <div class="section-header">
+                <h2>📁 RECORDED EXPEDITION TRAILS</h2>
+            </div>
+            <div class="trails-grid" id="trails-cards-grid">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Emergency SOS Logs Section -->
+        <div>
+            <div class="section-header">
+                <h2>🚨 EMERGENCY SOS DISTRESS LOGS</h2>
+            </div>
+            <div class="table-card">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>ALERT ID</th>
+                            <th>TIMESTAMP</th>
+                            <th>RELATIVE COORDS</th>
+                            <th>BEARING TO CAMP</th>
+                            <th>DISPLACEMENT</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sos-table-body">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check Authentication Status
+        const userJson = localStorage.getItem('wildpath_user');
+        const token = localStorage.getItem('wildpath_token');
+        const welcomeHeading = document.getElementById('welcome-heading');
+        const userProfileBadge = document.getElementById('user-profile-badge');
+
+        if (userJson) {
+            const user = JSON.parse(userJson);
+            welcomeHeading.textContent = `Welcome, ${user.username}!`;
+            userProfileBadge.textContent = `Explorer: ${user.username}`;
+        }
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            localStorage.removeItem('wildpath_token');
+            localStorage.removeItem('wildpath_user');
+            window.location.href = 'login.html';
+        });
+
+        // Load Dashboard Data from API
+        async function loadDashboardData() {
+            try {
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+                // Fetch Trails
+                const resTrails = await fetch('/api/trails', { headers });
+                const trailsData = await resTrails.json();
+
+                // Fetch SOS
+                const resSos = await fetch('/api/sos', { headers });
+                const sosData = await resSos.json();
+
+                if (trailsData.success) {
+                    renderTrails(trailsData.data);
+                }
+
+                if (sosData.success) {
+                    renderSosLogs(sosData.data);
+                }
+
+            } catch (e) {
+                console.error('Failed to load dashboard data:', e);
+            }
+        }
+
+        function renderTrails(trails) {
+            const grid = document.getElementById('trails-cards-grid');
+            document.getElementById('total-trails-val').textContent = trails.length;
+
+            let totalDistMeters = 0;
+            let totalSteps = 0;
+
+            trails.forEach(t => {
+                totalDistMeters += (t.totalDistance || 0);
+                totalSteps += (t.totalSteps || 0);
+            });
+
+            document.getElementById('total-dist-val').textContent = (totalDistMeters >= 1000) ? `${(totalDistMeters / 1000).toFixed(2)} km` : `${totalDistMeters.toFixed(0)} m`;
+            document.getElementById('total-steps-val').textContent = totalSteps.toLocaleString();
+
+            if (trails.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-dim); padding: 40px;">No expedition tracks recorded yet. Go to Map Navigator to record your first hike!</div>`;
+                return;
+            }
+
+            let html = '';
+            trails.forEach(trail => {
+                const id = trail._id || trail.id;
+                const dateStr = new Date(trail.createdAt).toLocaleString();
+                const distStr = (trail.totalDistance >= 1000) ? `${(trail.totalDistance / 1000).toFixed(2)} km` : `${trail.totalDistance.toFixed(0)} m`;
+
+                html += `
+                    <div class="dash-trail-card">
+                        <div class="trail-card-header">
+                            <span class="trail-card-title">${trail.name}</span>
+                            <span class="trail-card-date">${dateStr}</span>
+                        </div>
+                        <div class="trail-stats-row">
+                            <span>Distance: <strong>${distStr}</strong></span>
+                            <span>Steps: <strong>${trail.totalSteps || (trail.points || []).length * 12}</strong></span>
+                            <span>Waypoints: <strong>${(trail.waypoints || []).length}</strong></span>
+                        </div>
+                        <div class="trail-card-actions">
+                            <a href="index.html?load=${id}" class="btn btn-xs btn-primary">Load on Map</a>
+                            <a href="/api/trails/${id}/gpx" download class="btn btn-xs btn-outline">GPX</a>
+                            <a href="/api/trails/${id}/kml" download class="btn btn-xs btn-outline">KML</a>
+                            <button onclick="deleteTrail('${id}')" class="btn btn-xs btn-text danger-text">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        function renderSosLogs(logs) {
+            const tbody = document.getElementById('sos-table-body');
+            document.getElementById('total-sos-val').textContent = logs.length;
+
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-dim); padding: 20px;">No emergency SOS alerts logged.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            logs.forEach(log => {
+                const dateStr = new Date(log.createdAt || log.timestamp).toLocaleString();
+                const posX = (log.position && log.position.x !== undefined) ? log.position.x.toFixed(1) : '0';
+                const posY = (log.position && log.position.y !== undefined) ? (-log.position.y).toFixed(1) : '0';
+                const disp = (log.displacement !== undefined) ? `${log.displacement.toFixed(1)}m` : 'N/A';
+
+                html += `
+                    <tr>
+                        <td style="font-family: var(--font-mono); color: var(--accent-mint);">${log._id || log.id}</td>
+                        <td>${dateStr}</td>
+                        <td style="font-family: var(--font-mono);">X: ${posX}m, Y: ${posY}m</td>
+                        <td style="font-family: var(--font-mono); color: var(--accent-orange);">${log.bearingToBase || '180°'}</td>
+                        <td>${disp}</td>
+                        <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: #ef4444;">ACTIVE SOS</span></td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        async function deleteTrail(id) {
+            if (!confirm('Delete this expedition track from MongoDB backend?')) return;
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            await fetch(`/api/trails/${id}`, { method: 'DELETE', headers });
+            loadDashboardData();
+        }
+
+        loadDashboardData();
+    </script>
+</body>
+</html>
